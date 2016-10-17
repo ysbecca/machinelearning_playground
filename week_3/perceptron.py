@@ -18,8 +18,8 @@ print(M)
 print(data_size)
 
 # Maximum iterations to try:
-T = 50
-learning_rate = 0.25
+T = 100
+learning_rate = 0.3
 targets = [0 for x in range(data_size)]
 
 # Save all the target outputs into targets[] and add the bias
@@ -28,8 +28,9 @@ for x in range(data_size):
 	inputs[x][-1] = -1.0
 
 # Set all the weights to small random numbers - (M * data_size) weights total
-weights = [np.random.uniform(-1, 1, M) for y in range(data_size)]
-activation = [1.0 for x in range(data_size)]
+weights = np.random.uniform(-1, 1, M)
+activation = [0.0 for x in range(data_size)]
+
 
 def training(inputs, weights, activation, learning_rate, M, targets, data_size):
 	# Compute activation.
@@ -39,8 +40,7 @@ def training(inputs, weights, activation, learning_rate, M, targets, data_size):
 		for i in range(M): # Update all M weights
 			change = learning_rate * (activation[v] - targets[v]) * inputs[v][i]
 			# Update each of the weights individually
-			weights[v][i] = weights[v][i] - change
-
+			weights[i] = weights[i] - change
 
 def compute_activation(inputs, weights, activation, data_size, M):
 	for v in range(data_size): # For each input vector
@@ -48,19 +48,21 @@ def compute_activation(inputs, weights, activation, data_size, M):
 		
 		# Compute the activation of the ONE neuron by summing over all M+1 weights
 		for i in range(M):
-			activation[v] += weights[v][i] * inputs[v][i]
+			activation[v] += weights[i] * inputs[v][i]
 		# Now simplify the sum to show whether the neuron should fire or not
 		if activation[v] > 0:
 			activation[v] = 1
 		else:
 			activation[v] = 0
 
-# print("Target: ")
-# print(targets)
 
-# print("Initial activation: ")
-# compute_activation(inputs, weights, activation, data_size, M)
-# print(activation)
+def verify(activation, targets, data_size):
+	correct = 0
+	for x in range(data_size):
+		if(activation[x] == targets[x]):
+			correct += 1
+	return 100 * float(correct) / float(data_size)
+
 
 for i in range(T):
 	training(inputs, weights, activation, learning_rate, M, targets, data_size)
@@ -71,6 +73,6 @@ for i in range(T):
 		print("Matched target output! Took " + str(i + 1) + " iterations.")
 		break
 
-
-
+print(str(verify(activation, targets, data_size)) + "% correct")
+print("Ending program.")
 
