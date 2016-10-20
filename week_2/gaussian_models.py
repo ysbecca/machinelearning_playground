@@ -13,57 +13,80 @@ from pylab import title, legend
 
 print("Hello Numpy.")
 
-def find_mu(dataset):
-	size = float(len(dataset))
-	total = 0.0
-	for x in dataset:
-		total = total + x
-
-	return total / size
-
 
 # Generate a random dataset
-dataset_size = 10
+dataset_size = 4
 dimension = 2
-
-dataset_A = 10*np.random.rand(dataset_size, dimension)*(2,1) + (1,3)
-dataset_B = 10*np.random.rand(dataset_size, dimension)*(1,2) + (-0.5, -3)
-
+dataset_A = np.random.rand(dataset_size, dimension)*(2,1) + (5, 5)
+dataset_B = np.random.rand(dataset_size, dimension)*(1,5) + (2, 1)
 
 # Plot the datasets
-plt.title('Plot of DataSets A and B')
+plt.title('Plot of Data Sets A and B')
 plt.xlabel('X-Axis')
 plt.ylabel('Y-Axis')
 legend(['Set A', 'Set B'])
+plt.scatter(x = dataset_A.T[0], y = dataset_A.T[1], color="#CC0000", edgecolors='#220000')
+plt.scatter(x = dataset_B.T[0], y = dataset_B.T[1], color="#007700", marker="^", edgecolors='#002200')
 
-plt.plot(dataset_A, 'ro')
-plt.plot(dataset_B, 'bo')
-plt.show()
+def mu(dataset):
+	return sum(dataset) / len(dataset)
 
-# print("Covariance:")
-# print(np.cov(dataset_A))
-# print("Determinant:")
-# print(np.linalg.det(np.cov(dataset_A))*math.pow(10, 135))
+def variance(x, mu):
+	total = 0.0
+	for i in range(len(x)):
+		total += math.pow(x[i] - mu, 2)
+	return total
 
+def covariance(dataset):
+	mu_x = mu(dataset.T[0])
+	mu_y = mu(dataset.T[1])
+	size = len(dataset)
+	deviation = dataset - np.dot(np.ones((size, size)), dataset) / len(dataset)
+	return np.dot(deviation.T, deviation) / len(dataset)
 
-def gaussian(xy, mu, sigma):
-	pi = 3.14159265359
+def single_cov(dataset):
+	mu_x = mu(dataset.T[0])
+	mu_y = mu(dataset.T[1])
+	return sum([(x - mu_x) * (y - mu_y) for [x, y] in dataset]) / (len(dataset) - 1)
+
+def norm_pdf_multivariate(xy, mu, sigma):
 	size = len(xy)
-	det = np.linalg.det(sigma)*math.pow(10, 135)
-	if det == 0:
-		raise NameError("The determinant is 0.")
+	print(size)
+	print(len(mu))
+	print(sigma.shape)
+	if size == len(mu) and (size, size) == sigma.shape:
+		det = np.linalg.det(sigma)
+		if det == 0:
+			raise NameError("The covariance matrix can't be singular")
+		norm_const = 1.0/ ( math.pow((2*np.pi),float(size)/2) * math.pow(det,1.0/2) )
+		x_mu = np.matrix(xy - mu)
 
-	fraction = 1.0 / (math.pow(2 * pi, float(size) / 2.0) * math.pow(det, 0.5))
-	exp = -0.5 * (x_mu * matrix(xy - mu).T * sigma.I * matrix(xy - mu))
-	return fraction * math.pow(math.e, exp)
+		result = math.pow(math.e, -0.5 * (x_mu * np.linalg.inv(sigma) * x_mu.T))
+		return norm_const * result
+	else:
+		raise NameError("The dimensions of the input don't match")
+
+def norm_pdf_multivariate2(xy, mu, sigma):
+    size = len(xy)
+    if size == len(mu) and (size, size) == sigma.shape:
+        det = np.linalg.det(sigma)
+        if det == 0:
+            raise NameError("The covariance matrix can't be singular")
+        norm_const = 1.0/ ( math.pow((2*pi),float(size)/2) * math.pow(det,1.0/2) )
+        x_mu = np.matrix(xy - mu)
+        inv = np.linalg.inv(sigma)
+        result = math.pow(math.e, -0.5 * (x_mu * inv * x_mu.T))
+        return norm_const * result
+    else:
+        raise NameError("The dimensions of the input don't match")
 
 
-print(gaussian(dataset_A[0], find_mu(dataset_A), np.cov(dataset_A)))
+if(mu(dataset_A[0]) == np.mean(dataset_A[0])):
+	print("Calculated mu() = np.mean()")
 
+# print(np.cov(dataset_A.T))
+# print(covariance(dataset_A))
+print(norm_pdf_multivariate(dataset_A.T, mu(dataset_A), covariance(dataset_A)))
 
-
-
-
-
-
+plt.show()
 
